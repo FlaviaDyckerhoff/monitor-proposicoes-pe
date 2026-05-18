@@ -6,6 +6,7 @@ const EMAIL_REMETENTE = process.env.EMAIL_REMETENTE;
 const EMAIL_SENHA = process.env.EMAIL_SENHA;
 const ARQUIVO_ESTADO = 'estado.json';
 const API_BASE = 'https://dadosabertos.alepe.pe.gov.br/api/v1/proposicoes';
+const PORTAL_BASE = 'https://proposicoes.alepe.pe.gov.br';
 const LEGISLATURA = 20; // XX Legislatura (2023-2026)
 
 // Endpoints por tipo de proposição
@@ -73,6 +74,7 @@ async function buscarEndpoint(path, label) {
 
   const xml = await response.text();
   const lista = parseXML(xml);
+  lista.forEach(p => { p._endpoint = path; });
   console.log(`   📦 ${lista.length} ${label} recebidos`);
   return lista;
 }
@@ -93,6 +95,7 @@ function normalizarProposicao(p) {
     autor: p._autores || '-',
     data: p.dataPublicacao || '-',
     ementa: (p.ementa || '-').substring(0, 200),
+    url: `${PORTAL_BASE}/proposicoes/detalhes?docid=${encodeURIComponent(p.docid || '')}`,
   };
 }
 
@@ -115,7 +118,7 @@ async function enviarEmail(novas) {
     const rows = porTipo[tipo].map(p =>
       `<tr>
         <td style="padding:8px;border-bottom:1px solid #eee;color:#555;font-size:12px">${p.tipo}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee"><strong>${p.numero}/${p.ano}</strong></td>
+        <td style="padding:8px;border-bottom:1px solid #eee"><strong><a href="${p.url || PORTAL_BASE}" style="color:#003d7a;text-decoration:none">${p.numero}/${p.ano}</a></strong></td>
         <td style="padding:8px;border-bottom:1px solid #eee;font-size:12px">${p.autor}</td>
         <td style="padding:8px;border-bottom:1px solid #eee;font-size:12px;white-space:nowrap">${p.data}</td>
         <td style="padding:8px;border-bottom:1px solid #eee;font-size:12px">${p.ementa}</td>
