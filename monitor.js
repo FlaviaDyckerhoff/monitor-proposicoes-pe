@@ -16,6 +16,12 @@ const ENDPOINTS = [
   { path: 'requerimentos', label: 'Requerimentos' },
 ];
 
+const TIPO_URL_POR_ENDPOINT = {
+  projetos: 'projeto',
+  indicacoes: 'indicacao',
+  requerimentos: 'requerimento',
+};
+
 function carregarEstado() {
   if (fs.existsSync(ARQUIVO_ESTADO)) {
     return JSON.parse(fs.readFileSync(ARQUIVO_ESTADO, 'utf8'));
@@ -87,6 +93,14 @@ async function buscarTodasProposicoes() {
 }
 
 function normalizarProposicao(p) {
+  const tipoUrl = TIPO_URL_POR_ENDPOINT[p._endpoint] || 'projeto';
+  const numero = p.numero || '';
+  const ano = p.ano || '';
+  const docid = p.docid || '';
+  const url = numero && ano
+    ? `${PORTAL_BASE}/proposicoes/detalhes?tipo=${encodeURIComponent(tipoUrl)}&numero=${encodeURIComponent(numero)}&ano=${encodeURIComponent(ano)}`
+    : `${PORTAL_BASE}/proposicoes/detalhes?docid=${encodeURIComponent(docid)}`;
+
   return {
     docid: parseInt(p.docid) || 0,
     tipo: p.tipo || '-',
@@ -95,7 +109,7 @@ function normalizarProposicao(p) {
     autor: p._autores || '-',
     data: p.dataPublicacao || '-',
     ementa: (p.ementa || '-'),
-    url: `${PORTAL_BASE}/proposicoes/detalhes?docid=${encodeURIComponent(p.docid || '')}`,
+    url,
   };
 }
 
@@ -253,9 +267,9 @@ async function enviarEmail(novas) {
   }).join('');
 
   const html = `
-    <div style="font-family:Arial,sans-serif;max-width:900px;margin:0 auto">
+    <div style="font-family:Arial,sans-serif;width:100%;max-width:960px;margin:0 auto">
       <h2 style="color:#003d7a;border-bottom:2px solid #003d7a;padding-bottom:8px">
-        🏛️ Assembleia Legislativa de Pernambuco — ${novas.length} nova(s) proposição(ões)
+        🏛️ Pernambuco — ${novas.length} nova(s) proposição(ões)
       </h2>
       <p style="color:#666">Monitoramento automático — ${new Date().toLocaleString('pt-BR')}</p>
       <table style="width:100%;border-collapse:collapse;font-size:14px">
