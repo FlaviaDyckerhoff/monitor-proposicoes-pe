@@ -33,6 +33,16 @@ function mlClientInterestContext() {
 const EMAIL_DESTINO = process.env.EMAIL_DESTINO;
 const EMAIL_REMETENTE = process.env.EMAIL_REMETENTE;
 const EMAIL_SENHA = process.env.EMAIL_SENHA;
+
+function destinatariosPernambuco(valor) {
+  const lista = String(valor || '')
+    .split(/[;,]/)
+    .map(item => item.trim())
+    .filter(Boolean)
+    .filter(item => !/(?:^|[<\s])isabela(?:\.lima)?@monitorlegislativo\.com\.br(?:>|$)/i.test(item));
+  // Nunca deixar a retirada de uma pessoa desligar o alerta da localidade.
+  return lista.length ? lista.join(', ') : 'flavia@monitorlegislativo.com.br';
+}
 const CONTROLE03_FORCE_LATEST = String(process.env.CONTROLE03_FORCE_LATEST || '').trim() === '1';
 const ARQUIVO_ESTADO = 'estado.json';
 const RADAR03_URL = process.env.RADAR03_URL || 'https://doe.monitorlegislativo.com.br/controle03/';
@@ -633,7 +643,7 @@ async function enviarEmail(novas) {
 
   await transporter.sendMail({
     from: `"Monitor Pernambuco" <${EMAIL_REMETENTE}>`,
-    to: EMAIL_DESTINO,
+    to: destinatariosPernambuco(EMAIL_DESTINO),
     subject: assuntoEmailClienteCitado(novas, `🏛️ Pernambuco: ${novas.length} nova(s) proposição(ões) — ${new Date().toLocaleDateString('pt-BR')}`),
     html: fichaEmailButtonHtml() + html,
   });
