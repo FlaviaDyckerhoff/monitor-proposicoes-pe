@@ -121,8 +121,7 @@ async function buscarEndpoint(path, label) {
   const response = await fetch(url);
 
   if (!response.ok) {
-    console.error(`❌ Erro em ${label}: ${response.status} ${response.statusText}`);
-    return [];
+    throw new Error(`Erro em ${label}: ${response.status} ${response.statusText}`);
   }
 
   const xml = await response.text();
